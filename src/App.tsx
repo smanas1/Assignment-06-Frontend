@@ -18,6 +18,7 @@ import AgentDashboard from "./pages/DashboardPages/AgentDashboard";
 import AdminDashboard from "./pages/DashboardPages/AdminDashboard";
 import Footer from "./components/layout/Footer";
 import Navbar from "./components/layout/Navbar";
+import { TourProvider } from "./components/layout/TourProvider";
 
 function App() {
   const dispatch = useDispatch();
@@ -35,66 +36,68 @@ function App() {
   return (
     <>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-        <div className="min-h-screen  flex flex-col bg-background">
-          <Navbar />
-          <main className="flex-grow">
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/features" element={<Features />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/faq" element={<FAQ />} />
+        <TourProvider>
+          <div className="min-h-screen  flex flex-col bg-background">
+            <Navbar />
+            <main className="flex-grow">
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/features" element={<Features />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/faq" element={<FAQ />} />
 
-              {/* Auth Routes */}
-              <Route
-                path="/login"
-                element={user ? <Navigate to={`/${user.role}`} /> : <Login />}
-              />
-              <Route
-                path="/register"
-                element={
-                  user ? <Navigate to={`/${user.role}`} /> : <Register />
-                }
-              />
+                {/* Auth Routes */}
+                <Route
+                  path="/login"
+                  element={user ? <Navigate to={`/${user.role}`} /> : <Login />}
+                />
+                <Route
+                  path="/register"
+                  element={
+                    user ? <Navigate to={`/${user.role}`} /> : <Register />
+                  }
+                />
 
-              {/* Protected Routes */}
-              <Route
-                path="/user/*"
-                element={
-                  user?.role === "user" ? (
-                    <UserDashboard />
-                  ) : (
-                    <Navigate to="/login" />
-                  )
-                }
-              />
-              <Route
-                path="/agent/*"
-                element={
-                  user?.role === "agent" ? (
-                    <AgentDashboard />
-                  ) : (
-                    <Navigate to="/login" />
-                  )
-                }
-              />
-              <Route
-                path="/admin/*"
-                element={
-                  user?.role === "admin" ? (
-                    <AdminDashboard />
-                  ) : (
-                    <Navigate to="/login" />
-                  )
-                }
-              />
-              {/* Unknown Routes Redirect */}
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
+                {/* Protected Routes */}
+                <Route
+                  path="/user/*"
+                  element={
+                    user?.role === "user" ? (
+                      <UserDashboard />
+                    ) : (
+                      <Navigate to="/login" />
+                    )
+                  }
+                />
+                <Route
+                  path="/agent/*"
+                  element={
+                    user?.role === "agent" ? (
+                      <AgentDashboard />
+                    ) : (
+                      <Navigate to="/login" />
+                    )
+                  }
+                />
+                <Route
+                  path="/admin/*"
+                  element={
+                    user?.role === "admin" ? (
+                      <AdminDashboard />
+                    ) : (
+                      <Navigate to="/login" />
+                    )
+                  }
+                />
+                {/* Unknown Routes Redirect */}
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </TourProvider>
       </ThemeProvider>
     </>
   );
