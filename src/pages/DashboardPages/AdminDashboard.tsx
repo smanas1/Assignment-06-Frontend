@@ -2,11 +2,9 @@
 // src/pages/admin/AdminDashboard.tsx
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-
 import { useAppDispatch } from "@/hooks";
 import { logout } from "@/redux/slices/authSlice";
 import { toast } from "sonner";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -72,7 +70,6 @@ import {
   useSuspendAgentMutation,
   useUnblockUserMutation,
 } from "@/services/wallet";
-
 // Chart components
 import {
   BarChart,
@@ -87,7 +84,6 @@ import {
   Pie,
   Cell,
 } from "recharts";
-
 // Define TypeScript interfaces
 interface User {
   _id: string;
@@ -97,7 +93,6 @@ interface User {
   isBlocked: boolean;
   createdAt: string;
 }
-
 interface Wallet {
   _id: string;
   owner: {
@@ -108,7 +103,6 @@ interface Wallet {
   currency: string;
   createdAt: string;
 }
-
 interface Transaction {
   _id: string;
   type: string;
@@ -124,11 +118,9 @@ interface Transaction {
   wallet: string;
   createdAt: string;
 }
-
 const AdminDashboard = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-
   // RTK Query hooks
   const {
     data: usersData,
@@ -144,13 +136,11 @@ const AdminDashboard = () => {
     useGetAllWalletsQuery();
   const { data: transactionsData, isLoading: transactionsLoading } =
     useGetAllTransactionsQuery({});
-
   // Mutation hooks
   const [blockUser] = useBlockUserMutation();
   const [unblockUser] = useUnblockUserMutation();
   const [suspendAgent] = useSuspendAgentMutation();
   const [activateAgent] = useActivateAgentMutation();
-
   // State
   const [searchTerm, setSearchTerm] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("all");
@@ -164,17 +154,16 @@ const AdminDashboard = () => {
     action: "",
     userName: "",
   });
-
-  // Pagination state for transactions
-  const [currentPage, setCurrentPage] = useState(1);
+  // --- ADD PAGINATION STATES ---
+  const [transactionCurrentPage, setTransactionCurrentPage] = useState(1);
+  const [userCurrentPage, setUserCurrentPage] = useState(1);
+  const [walletCurrentPage, setWalletCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-
   // Extract data
   const users = usersData?.data ?? [];
   const agents = agentsData?.data ?? [];
   const wallets = walletsData?.data ?? [];
   const transactions = transactionsData?.data ?? [];
-
   // Filtered data
   const filteredUsers = users.filter((user: any) => {
     const matchesSearch =
@@ -184,14 +173,12 @@ const AdminDashboard = () => {
       userRoleFilter === "all" || user.role === userRoleFilter;
     return matchesSearch && matchesRole;
   });
-
   const filteredTransactions = transactions.filter(
     (transaction: Transaction) => {
       // Apply date range filter
       const transactionDate = new Date(transaction.createdAt);
       const now = new Date();
       let daysToSubtract = 7;
-
       if (dateRange === "1") {
         daysToSubtract = 1;
       } else if (dateRange === "30") {
@@ -199,32 +186,50 @@ const AdminDashboard = () => {
       } else if (dateRange === "90") {
         daysToSubtract = 90;
       }
-
       const startDate = new Date(now);
       startDate.setDate(now.getDate() - daysToSubtract);
-
       const isWithinDateRange = transactionDate >= startDate;
-
       // Apply type filter
       const matchesType =
         transactionTypeFilter === "all" ||
         transaction.type === transactionTypeFilter;
-
       return isWithinDateRange && matchesType;
     }
   );
-
-  // Pagination logic
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  // --- PAGINATION LOGIC FOR TRANSACTIONS ---
+  const transactionIndexOfLastItem = transactionCurrentPage * itemsPerPage;
+  const transactionIndexOfFirstItem = transactionIndexOfLastItem - itemsPerPage;
   const currentTransactions = filteredTransactions.slice(
-    indexOfFirstItem,
-    indexOfLastItem
+    transactionIndexOfFirstItem,
+    transactionIndexOfLastItem
   );
-  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+  const transactionTotalPages = Math.ceil(
+    filteredTransactions.length / itemsPerPage
+  );
 
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
+  // --- PAGINATION LOGIC FOR USERS ---
+  const userIndexOfLastItem = userCurrentPage * itemsPerPage;
+  const userIndexOfFirstItem = userIndexOfLastItem - itemsPerPage;
+  const currentUsers = filteredUsers.slice(
+    userIndexOfFirstItem,
+    userIndexOfLastItem
+  );
+  const userTotalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+
+  // --- PAGINATION LOGIC FOR WALLETS ---
+  const walletIndexOfLastItem = walletCurrentPage * itemsPerPage;
+  const walletIndexOfFirstItem = walletIndexOfLastItem - itemsPerPage;
+  const currentWallets = wallets.slice(
+    walletIndexOfFirstItem,
+    walletIndexOfLastItem
+  );
+  const walletTotalPages = Math.ceil(wallets.length / itemsPerPage);
+
+  const handlePageChange = (
+    setter: React.Dispatch<React.SetStateAction<number>>,
+    pageNumber: number
+  ) => {
+    setter(pageNumber);
   };
 
   const handleLogout = () => {
@@ -232,12 +237,10 @@ const AdminDashboard = () => {
     navigate("/");
     toast.success("Logged out successfully");
   };
-
   const handleViewUser = (user: User) => {
     setSelectedUser(user);
     setShowUserDetails(true);
   };
-
   const handleUserAction = (
     userId: string,
     action: string,
@@ -246,7 +249,6 @@ const AdminDashboard = () => {
     setConfirmationData({ userId, action, userName });
     setShowConfirmation(true);
   };
-
   const confirmUserAction = async () => {
     try {
       if (confirmationData.action === "block") {
@@ -268,7 +270,6 @@ const AdminDashboard = () => {
           `Agent ${confirmationData.userName} activated successfully`
         );
       }
-
       // Refetch data after action
       refetchUsers();
       refetchAgents();
@@ -278,7 +279,6 @@ const AdminDashboard = () => {
       setShowConfirmation(false);
     }
   };
-
   // Calculate statistics
   const totalUsers = users.length;
   const totalAgents = agents.length;
@@ -287,11 +287,9 @@ const AdminDashboard = () => {
     (sum, t) => sum + t.amount,
     0
   );
-
   // Calculate active users and agents
   const activeUsers = users.filter((u) => !u.isBlocked).length;
   const activeAgents = agents.filter((a) => !a.isBlocked).length;
-
   // Prepare data for charts
   // Transaction volume by type
   const transactionVolumeByType = filteredTransactions.reduce(
@@ -302,21 +300,18 @@ const AdminDashboard = () => {
     },
     {}
   );
-
   const transactionVolumeChartData = Object.entries(
     transactionVolumeByType
   ).map(([type, amount]) => ({
     name: type.replace("-", " "),
     value: amount,
   }));
-
   // Transactions over time (last 7 days)
   const transactionsOverTime = (() => {
     const now = new Date();
     const dates = [];
     const transactionCounts: Record<string, number> = {};
     const transactionVolumes: Record<string, number> = {};
-
     // Initialize last 7 days
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now);
@@ -326,7 +321,6 @@ const AdminDashboard = () => {
       transactionCounts[dateStr] = 0;
       transactionVolumes[dateStr] = 0;
     }
-
     // Count transactions for each day
     filteredTransactions.forEach((transaction) => {
       const dateStr = transaction.createdAt.split("T")[0];
@@ -335,23 +329,19 @@ const AdminDashboard = () => {
         transactionVolumes[dateStr] += transaction.amount;
       }
     });
-
     return dates.map((date) => ({
       date,
       transactions: transactionCounts[date],
       volume: transactionVolumes[date],
     }));
   })();
-
   // User distribution by role
   const userDistribution = [
     { name: "Users", value: totalUsers - totalAgents },
     { name: "Agents", value: totalAgents },
   ];
-
   // COLORS for charts
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -376,7 +366,6 @@ const AdminDashboard = () => {
             </Button>
           </div>
         </div>
-
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
@@ -397,7 +386,6 @@ const AdminDashboard = () => {
               </p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -418,7 +406,6 @@ const AdminDashboard = () => {
               </p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -439,7 +426,6 @@ const AdminDashboard = () => {
               </p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -461,7 +447,6 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
-
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Transaction Volume by Type */}
@@ -501,7 +486,6 @@ const AdminDashboard = () => {
               )}
             </CardContent>
           </Card>
-
           {/* User Distribution */}
           <Card>
             <CardHeader>
@@ -547,7 +531,6 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
-
         {/* Transactions Over Time Chart */}
         <div className="mb-8">
           <Card>
@@ -622,39 +605,41 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Users Management */}
+        {/* Users Management WITH PAGINATION AND IMPROVED RESPONSIVENESS */}
         <div className="mb-8">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center">
                   <Users className="mr-2 h-5 w-5" />
                   User Management
                 </div>
-                <div className="flex items-center space-x-2">
-                  <div className="relative">
+                <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                  <div className="relative w-full sm:w-auto">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Search users..."
-                      className="pl-8 w-64"
+                      className="pl-8 w-full sm:w-64 md:w-80"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
-                  <Select
-                    value={userRoleFilter}
-                    onValueChange={setUserRoleFilter}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Filter by role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Roles</SelectItem>
-                      <SelectItem value="user">Users</SelectItem>
-                      <SelectItem value="agent">Agents</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="w-full sm:w-auto">
+                    <Select
+                      value={userRoleFilter}
+                      onValueChange={setUserRoleFilter}
+                    >
+                      <SelectTrigger className="w-full sm:w-40 md:w-48">
+                        <SelectValue placeholder="Filter by role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Roles</SelectItem>
+                        <SelectItem value="user">Users</SelectItem>
+                        <SelectItem value="agent">Agents</SelectItem>
+                        <SelectItem value="admin">Admins</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </CardTitle>
             </CardHeader>
@@ -669,69 +654,132 @@ const AdminDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Created</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredUsers.length > 0 ? (
-                        filteredUsers.map((user) => (
-                          <TableRow key={user._id}>
-                            <TableCell className="font-medium">
-                              {user.name}
-                            </TableCell>
-                            <TableCell>{user.phone}</TableCell>
-                            <TableCell>
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs ${
-                                  user.role === "agent"
-                                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
-                                    : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-                                }`}
-                              >
-                                {user.role}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs ${
-                                  user.isBlocked
-                                    ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
-                                    : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-                                }`}
-                              >
-                                {user.isBlocked ? "Blocked" : "Active"}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              {new Date(user.createdAt).toLocaleDateString()}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end space-x-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleViewUser(user)}
+                <>
+                  <div className="rounded-md border overflow-x-auto">
+                    {" "}
+                    {/* Allow horizontal scroll on small screens */}
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-left">Name</TableHead>
+                          <TableHead className="text-left hidden md:table-cell">
+                            Phone
+                          </TableHead>{" "}
+                          {/* Hide on small screens */}
+                          <TableHead className="text-left">Role</TableHead>
+                          <TableHead className="text-left">Status</TableHead>
+                          <TableHead className="text-left hidden sm:table-cell">
+                            Balance
+                          </TableHead>{" "}
+                          {/* Hide on extra small screens */}
+                          <TableHead className="text-left hidden lg:table-cell">
+                            Created
+                          </TableHead>{" "}
+                          {/* Hide on smaller screens */}
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {currentUsers.length > 0 ? (
+                          currentUsers.map((user) => (
+                            <TableRow key={user._id} className="border-b">
+                              <TableCell className="font-medium">
+                                <div>
+                                  <div className="font-medium">{user.name}</div>
+                                  {/* Show phone on small screens within the row */}
+                                  <div className="md:hidden text-sm text-muted-foreground mt-1">
+                                    {user.phone}
+                                  </div>
+                                  {/* Show date on small screens within the row */}
+                                  <div className="lg:hidden text-xs text-muted-foreground mt-1">
+                                    {new Date(
+                                      user.createdAt
+                                    ).toLocaleDateString()}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell">
+                                {user.phone}
+                              </TableCell>
+                              <TableCell>
+                                <span
+                                  className={`px-2 py-1 capitalize rounded-full text-xs ${
+                                    user.role === "agent"
+                                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+                                      : user.role === "admin"
+                                      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                                      : "bg-gray-100 text-gray-800 dark:bg-sky-700 dark:text-gray-100"
+                                  }`}
                                 >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                {user.role === "agent" ? (
-                                  user.isBlocked ? (
+                                  {user.role}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                <span
+                                  className={`px-2 py-1 rounded-full text-xs ${
+                                    user.isBlocked
+                                      ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+                                      : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                                  }`}
+                                >
+                                  {user.isBlocked ? "Blocked" : "Active"}
+                                </span>
+                              </TableCell>
+                              <TableCell className="hidden sm:table-cell">
+                                <span className="font-medium text-green-500">
+                                  ৳{user.wallet?.balance?.toFixed(2) ?? "0.00"}
+                                </span>
+                              </TableCell>
+                              <TableCell className="hidden lg:table-cell">
+                                {new Date(user.createdAt).toLocaleDateString()}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleViewUser(user)}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  {user.role === "agent" ? (
+                                    user.isBlocked ? (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                          handleUserAction(
+                                            user._id,
+                                            "activate",
+                                            user.name
+                                          )
+                                        }
+                                      >
+                                        <CheckCircle className="h-4 w-4 text-green-500" />
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                          handleUserAction(
+                                            user._id,
+                                            "suspend",
+                                            user.name
+                                          )
+                                        }
+                                      >
+                                        <Ban className="h-4 w-4 text-red-500" />
+                                      </Button>
+                                    )
+                                  ) : user.isBlocked ? (
                                     <Button
                                       variant="outline"
                                       size="sm"
                                       onClick={() =>
                                         handleUserAction(
                                           user._id,
-                                          "activate",
+                                          "unblock",
                                           user.name
                                         )
                                       }
@@ -745,65 +793,116 @@ const AdminDashboard = () => {
                                       onClick={() =>
                                         handleUserAction(
                                           user._id,
-                                          "suspend",
+                                          "block",
                                           user.name
                                         )
                                       }
                                     >
                                       <Ban className="h-4 w-4 text-red-500" />
                                     </Button>
-                                  )
-                                ) : user.isBlocked ? (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                      handleUserAction(
-                                        user._id,
-                                        "unblock",
-                                        user.name
-                                      )
-                                    }
-                                  >
-                                    <CheckCircle className="h-4 w-4 text-green-500" />
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                      handleUserAction(
-                                        user._id,
-                                        "block",
-                                        user.name
-                                      )
-                                    }
-                                  >
-                                    <Ban className="h-4 w-4 text-red-500" />
-                                  </Button>
-                                )}
-                              </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell
+                              colSpan={7} // Updated colspan
+                              className="text-center py-8 text-muted-foreground"
+                            >
+                              No users found
                             </TableCell>
                           </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell
-                            colSpan={6}
-                            className="text-center py-8 text-muted-foreground"
-                          >
-                            No users found
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Pagination Controls for Users */}
+                  {filteredUsers.length > itemsPerPage && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+                      <div className="text-sm text-muted-foreground">
+                        Showing {userIndexOfFirstItem + 1} to{" "}
+                        {Math.min(userIndexOfLastItem, filteredUsers.length)} of{" "}
+                        {filteredUsers.length} users
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handlePageChange(
+                              setUserCurrentPage,
+                              userCurrentPage - 1
+                            )
+                          }
+                          disabled={userCurrentPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        {/* Simple pagination - show first, current, last */}
+                        {userTotalPages > 1 && (
+                          <>
+                            {userCurrentPage > 1 && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handlePageChange(setUserCurrentPage, 1)
+                                }
+                              >
+                                1
+                              </Button>
+                            )}
+                            {userCurrentPage > 2 && <span>...</span>}
+                            <Button
+                              variant="default"
+                              size="sm"
+                              // No onClick needed, it's the current page
+                            >
+                              {userCurrentPage}
+                            </Button>
+                            {userCurrentPage < userTotalPages - 1 && (
+                              <span>...</span>
+                            )}
+                            {userCurrentPage < userTotalPages && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handlePageChange(
+                                    setUserCurrentPage,
+                                    userTotalPages
+                                  )
+                                }
+                              >
+                                {userTotalPages}
+                              </Button>
+                            )}
+                          </>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handlePageChange(
+                              setUserCurrentPage,
+                              userCurrentPage + 1
+                            )
+                          }
+                          disabled={userCurrentPage === userTotalPages}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
         </div>
-
         {/* Transactions Overview with Pagination */}
         <div className="mb-8">
           <Card>
@@ -913,32 +1012,43 @@ const AdminDashboard = () => {
                       </TableBody>
                     </Table>
                   </div>
-
-                  {/* Pagination Controls */}
+                  {/* Pagination Controls for Transactions */}
                   {filteredTransactions.length > itemsPerPage && (
                     <div className="flex items-center justify-between mt-4">
                       <div className="text-sm text-muted-foreground">
-                        Showing {indexOfFirstItem + 1} to{" "}
-                        {Math.min(indexOfLastItem, filteredTransactions.length)}{" "}
+                        Showing {transactionIndexOfFirstItem + 1} to{" "}
+                        {Math.min(
+                          transactionIndexOfLastItem,
+                          filteredTransactions.length
+                        )}{" "}
                         of {filteredTransactions.length} transactions
                       </div>
                       <div className="flex space-x-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          disabled={currentPage === 1}
+                          onClick={() =>
+                            handlePageChange(
+                              setTransactionCurrentPage,
+                              transactionCurrentPage - 1
+                            )
+                          }
+                          disabled={transactionCurrentPage === 1}
                         >
                           <ChevronLeft className="h-4 w-4" />
                         </Button>
-                        {[...Array(totalPages)].map((_, i) => (
+                        {[...Array(transactionTotalPages)].map((_, i) => (
                           <Button
                             key={i}
                             variant={
-                              currentPage === i + 1 ? "default" : "outline"
+                              transactionCurrentPage === i + 1
+                                ? "default"
+                                : "outline"
                             }
                             size="sm"
-                            onClick={() => handlePageChange(i + 1)}
+                            onClick={() =>
+                              handlePageChange(setTransactionCurrentPage, i + 1)
+                            }
                           >
                             {i + 1}
                           </Button>
@@ -946,8 +1056,15 @@ const AdminDashboard = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          disabled={currentPage === totalPages}
+                          onClick={() =>
+                            handlePageChange(
+                              setTransactionCurrentPage,
+                              transactionCurrentPage + 1
+                            )
+                          }
+                          disabled={
+                            transactionCurrentPage === transactionTotalPages
+                          }
                         >
                           <ChevronRight className="h-4 w-4" />
                         </Button>
@@ -959,14 +1076,18 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Wallets Overview */}
+        {/* Wallets Overview WITH PAGINATION */}
         <div className="mb-8">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <DollarSign className="mr-2 h-5 w-5" />
-                Wallet Overview
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <DollarSign className="mr-2 h-5 w-5" />
+                  Wallet Overview
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Total Wallets: {wallets.length}
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -980,50 +1101,107 @@ const AdminDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Owner</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Balance</TableHead>
-                        <TableHead>Created</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {wallets.length > 0 ? (
-                        wallets.slice(0, 10).map((wallet) => (
-                          <TableRow key={wallet._id}>
-                            <TableCell className="font-medium">
-                              {wallet.owner.name}
-                            </TableCell>
-                            <TableCell>{wallet.owner.phone}</TableCell>
-                            <TableCell className="font-medium">
-                              ৳{wallet.balance.toFixed(2)}
-                            </TableCell>
-                            <TableCell>
-                              {new Date(wallet.createdAt).toLocaleDateString()}
+                <>
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Owner</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Balance</TableHead>
+                          <TableHead>Created</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {currentWallets.length > 0 ? (
+                          currentWallets.map((wallet) => (
+                            <TableRow key={wallet._id}>
+                              <TableCell className="font-medium">
+                                {wallet.owner.name}
+                              </TableCell>
+                              <TableCell>{wallet.owner.phone}</TableCell>
+                              <TableCell className="font-medium">
+                                ৳{wallet.balance.toFixed(2)}
+                              </TableCell>
+                              <TableCell>
+                                {new Date(
+                                  wallet.createdAt
+                                ).toLocaleDateString()}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell
+                              colSpan={4}
+                              className="text-center py-8 text-muted-foreground"
+                            >
+                              No wallets found
                             </TableCell>
                           </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell
-                            colSpan={4}
-                            className="text-center py-8 text-muted-foreground"
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {/* Pagination Controls for Wallets */}
+                  {wallets.length > itemsPerPage && (
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="text-sm text-muted-foreground">
+                        Showing {walletIndexOfFirstItem + 1} to{" "}
+                        {Math.min(walletIndexOfLastItem, wallets.length)} of{" "}
+                        {wallets.length} wallets
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handlePageChange(
+                              setWalletCurrentPage,
+                              walletCurrentPage - 1
+                            )
+                          }
+                          disabled={walletCurrentPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        {[...Array(walletTotalPages)].map((_, i) => (
+                          <Button
+                            key={i}
+                            variant={
+                              walletCurrentPage === i + 1
+                                ? "default"
+                                : "outline"
+                            }
+                            size="sm"
+                            onClick={() =>
+                              handlePageChange(setWalletCurrentPage, i + 1)
+                            }
                           >
-                            No wallets found
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+                            {i + 1}
+                          </Button>
+                        ))}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handlePageChange(
+                              setWalletCurrentPage,
+                              walletCurrentPage + 1
+                            )
+                          }
+                          disabled={walletCurrentPage === walletTotalPages}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
         </div>
-
         {/* User Details Dialog */}
         <Dialog open={showUserDetails} onOpenChange={setShowUserDetails}>
           <DialogContent className="max-w-md">
@@ -1049,10 +1227,12 @@ const AdminDashboard = () => {
                   <Label className="text-right">Role</Label>
                   <div className="col-span-3">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs ${
+                      className={`px-2 py-1 capitalize rounded-full text-xs ${
                         selectedUser.role === "agent"
-                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
-                          : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                          ? "bg-blue-100 text-blue-800  dark:bg-blue-900 dark:text-blue-100"
+                          : selectedUser.role === "admin"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                          : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100"
                       }`}
                     >
                       {selectedUser.role}
@@ -1086,7 +1266,6 @@ const AdminDashboard = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
         {/* Confirmation Dialog */}
         <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
           <AlertDialogContent>
@@ -1109,5 +1288,4 @@ const AdminDashboard = () => {
     </div>
   );
 };
-
 export default AdminDashboard;
