@@ -22,6 +22,21 @@ interface PaginationParams {
   startDate?: string;
   endDate?: string;
 }
+interface CommissionTransaction {
+  _id: string;
+  type: "commission-earned";
+  amount: number;
+  description: string;
+  createdAt: string;
+  sender?: {
+    name: string;
+    phone: string;
+  };
+}
+
+interface CommissionHistoryResponse {
+  transactions: CommissionTransaction[];
+}
 
 export const walletApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -77,6 +92,10 @@ export const walletApi = api.injectEndpoints({
         url: "/agent/transactions",
         params,
       }),
+    }),
+    getCommissionHistory: builder.query<CommissionHistoryResponse, void>({
+      query: () => "/agent/commissions",
+      providesTags: ["Transaction"],
     }),
     // Admin
     getAllUsers: builder.query<User[], void>({
@@ -140,6 +159,7 @@ export const {
   useSendMoneyMutation,
   useGetTransactionQuery,
   useCashInMutation,
+  useGetCommissionHistoryQuery,
   useCashOutMutation,
   useGetAgentTransactionsQuery,
   useGetAllUsersQuery,
