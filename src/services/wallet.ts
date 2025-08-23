@@ -99,11 +99,11 @@ export const walletApi = api.injectEndpoints({
     }),
     // Admin
     getAllUsers: builder.query<User[], void>({
-      query: () => "/agent/users",
+      query: () => "/admin/users",
       providesTags: ["User"],
     }),
     getAllAgents: builder.query<User[], void>({
-      query: () => "/agent/all",
+      query: () => "/admin/agents",
       providesTags: ["User"],
     }),
     getAllTransactions: builder.query<Transaction[], PaginationParams>({
