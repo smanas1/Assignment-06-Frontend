@@ -37,6 +37,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const result = await login(formData).unwrap();
+      console.log(result);
       dispatch(setCredentials({ user: result.user, token: result.token! }));
       toast.success("Login Successful");
       navigate(`/${result.user.role}`);
