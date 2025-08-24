@@ -384,7 +384,7 @@ const AdminDashboard = () => {
           </div>
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="icon" asChild>
-              <Link to="/admin/profile">
+              <Link to="/profile">
                 <User className="h-5 w-5" />
               </Link>
             </Button>

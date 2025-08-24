@@ -19,6 +19,7 @@ import AdminDashboard from "./pages/DashboardPages/AdminDashboard";
 import Footer from "./components/layout/Footer";
 import Navbar from "./components/layout/Navbar";
 import { TourProvider } from "./components/layout/TourProvider";
+import Profile from "./pages/Profile";
 
 function App() {
   const dispatch = useDispatch();
@@ -62,6 +63,10 @@ function App() {
 
                 {/* Protected Routes */}
                 <Route
+                  path="/profile"
+                  element={user?.role ? <Profile /> : <Navigate to="/login" />}
+                />
+                <Route
                   path="/user/*"
                   element={
                     user?.role === "user" ? (
@@ -91,6 +96,7 @@ function App() {
                     )
                   }
                 />
+
                 {/* Unknown Routes Redirect */}
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>

@@ -43,6 +43,54 @@ export const authApi = api.injectEndpoints({
     getMe: builder.query<AuthResponse, void>({
       query: () => "/auth/me",
     }),
+    updateProfile: builder.mutation<AuthResponse, { name: string }>({
+      query: (data) => ({
+        url: "/auth/profile",
+        method: "PUT",
+        body: data,
+      }),
+    }),
+    changePassword: builder.mutation<
+      void,
+      {
+        currentPassword?: string;
+        newPassword: string;
+      }
+    >({
+      query: (data) => ({
+        url: "/auth/password",
+        method: "PUT",
+        body: data,
+      }),
+    }),
+    adminUpdateUser: builder.mutation<
+      User,
+      {
+        userId: string;
+        name?: string;
+        phone?: string;
+        role?: string;
+      }
+    >({
+      query: ({ userId, ...data }) => ({
+        url: `/admin/user/${userId}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+    adminChangeUserPassword: builder.mutation<
+      void,
+      {
+        userId: string;
+        newPassword: string;
+      }
+    >({
+      query: ({ userId, newPassword }) => ({
+        url: `/admin/user/${userId}/password`,
+        method: "PUT",
+        body: { newPassword },
+      }),
+    }),
   }),
 });
 
@@ -51,4 +99,8 @@ export const {
   useRegisterMutation,
   useLogoutMutation,
   useGetMeQuery,
+  useUpdateProfileMutation,
+  useChangePasswordMutation,
+  useAdminUpdateUserMutation,
+  useAdminChangeUserPasswordMutation,
 } = authApi;
