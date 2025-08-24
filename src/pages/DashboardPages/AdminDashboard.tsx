@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/admin/AdminDashboard.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAppDispatch } from "@/hooks";
 import { logout } from "@/redux/slices/authSlice";
@@ -58,6 +58,10 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Pencil,
+  X,
+  Save,
+  Key,
 } from "lucide-react";
 import {
   useActivateAgentMutation,
@@ -83,6 +87,10 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import {
+  useAdminChangeUserPasswordMutation,
+  useAdminUpdateUserMutation,
+} from "@/services/auth";
 // Define TypeScript interfaces
 interface User {
   wallet: any;
@@ -117,6 +125,8 @@ const AdminDashboard = () => {
   const [unblockUser] = useUnblockUserMutation();
   const [suspendAgent] = useSuspendAgentMutation();
   const [activateAgent] = useActivateAgentMutation();
+  const [updateUser] = useAdminUpdateUserMutation(); // You need to implement this in your wallet service
+  const [adminChangeUserPassword] = useAdminChangeUserPasswordMutation(); // You need to implement this
   // State
   const [searchTerm, setSearchTerm] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("all");
@@ -139,6 +149,10 @@ const AdminDashboard = () => {
   const [transactionCurrentPage, setTransactionCurrentPage] = useState(1);
   const [userCurrentPage, setUserCurrentPage] = useState(1);
   const [walletSearchTerm, setWalletSearchTerm] = useState("");
+  const [isEditingUser, setIsEditingUser] = useState(false);
+  const [editedUser, setEditedUser] = useState<User | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [transactionSearchTerm, setTransactionSearchTerm] = useState("");
   const [walletCurrentPage, setWalletCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -147,6 +161,76 @@ const AdminDashboard = () => {
   const agents = agentsData?.data ?? [];
   const wallets = walletsData?.data ?? [];
   const transactions = transactionsData?.data ?? [];
+  useEffect(() => {
+    if (selectedUser) {
+      setEditedUser({ ...selectedUser });
+      setIsEditingUser(false);
+      setNewPassword("");
+      setConfirmNewPassword("");
+    }
+  }, [selectedUser]);
+
+  const handleEditUser = () => {
+    setIsEditingUser(true);
+    // Initialize editedUser with current selectedUser data
+    setEditedUser(selectedUser ? { ...selectedUser } : null);
+  };
+
+  const handleSaveUser = async () => {
+    if (!editedUser) return;
+
+    try {
+      // Call the updateUser mutation with the edited data (excluding balance)
+      await updateUser({
+        userId: editedUser._id,
+        name: editedUser.name,
+        phone: editedUser.phone,
+        // Removed balance from update payload
+      }).unwrap();
+
+      toast.success("User details updated successfully");
+      setIsEditingUser(false);
+      // Close the modal after saving
+      setShowUserDetails(false);
+      // Optionally refetch users to update the main table
+      // refetchUsers();
+    } catch (err: any) {
+      console.error("Update user error:", err);
+      toast.error(err.data?.message || "Failed to update user details");
+    }
+  };
+
+  const handleChangeUserPassword = async () => {
+    if (!selectedUser) return;
+
+    if (newPassword !== confirmNewPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    try {
+      // Call the adminChangeUserPassword mutation
+      await adminChangeUserPassword({
+        userId: selectedUser._id,
+        newPassword,
+      }).unwrap();
+
+      toast.success("User password changed successfully");
+      setNewPassword("");
+      setConfirmNewPassword("");
+      // Close the modal after changing password
+      setShowUserDetails(false);
+    } catch (err: any) {
+      console.error("Change user password error:", err);
+      toast.error(err.data?.message || "Failed to change user password");
+    }
+  };
+
   // Filtered data
   const filteredUsers = users.filter((user) => {
     // Existing Search Filter
@@ -1431,60 +1515,177 @@ const AdminDashboard = () => {
           </Card>
         </div>
         {/* User Details Dialog */}
-        <Dialog open={showUserDetails} onOpenChange={setShowUserDetails}>
-          <DialogContent className="max-w-md">
+        <Dialog
+          open={showUserDetails}
+          onOpenChange={(open) => {
+            setShowUserDetails(open);
+            if (!open) {
+              // Reset editing state when closing the dialog
+              setIsEditingUser(false);
+              setNewPassword("");
+              setConfirmNewPassword("");
+            }
+          }}
+        >
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>User Details</DialogTitle>
+              <DialogTitle className="flex justify-between items-center">
+                <span>User Details</span>
+                {!isEditingUser ? (
+                  <Button variant="ghost" size="sm" onClick={handleEditUser}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditingUser(false)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={handleSaveUser}>
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </DialogTitle>
               <DialogDescription>
                 Detailed information about the user
               </DialogDescription>
             </DialogHeader>
             {selectedUser && (
               <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Name</Label>
-                  <div className="col-span-3 font-medium">
-                    {selectedUser.name}
+                {/* User Info Section */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">User Information</h3>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label className="text-right" htmlFor="userName">
+                      Name
+                    </Label>
+                    {isEditingUser ? (
+                      <Input
+                        id="userName"
+                        className="col-span-3"
+                        value={editedUser?.name || ""}
+                        onChange={(e) =>
+                          setEditedUser((prev) =>
+                            prev ? { ...prev, name: e.target.value } : null
+                          )
+                        }
+                      />
+                    ) : (
+                      <div className="col-span-3 font-medium">
+                        {selectedUser.name}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label className="text-right" htmlFor="userPhone">
+                      Phone
+                    </Label>
+                    {isEditingUser ? (
+                      <Input
+                        id="userPhone"
+                        className="col-span-3"
+                        value={editedUser?.phone || ""}
+                        onChange={(e) =>
+                          setEditedUser((prev) =>
+                            prev ? { ...prev, phone: e.target.value } : null
+                          )
+                        }
+                        // Removed disabled attribute to allow editing
+                      />
+                    ) : (
+                      <div className="col-span-3">{selectedUser.phone}</div>
+                    )}
+                  </div>
+
+                  {/* REMOVED BALANCE FIELD */}
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label className="text-right">Role</Label>
+                    <div className="col-span-3">
+                      <span
+                        className={`px-2 py-1 capitalize rounded-full text-xs ${
+                          selectedUser.role === "agent"
+                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+                            : selectedUser.role === "admin"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                            : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100"
+                        }`}
+                      >
+                        {selectedUser.role}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label className="text-right">Status</Label>
+                    <div className="col-span-3">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          selectedUser.isBlocked
+                            ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+                            : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                        }`}
+                      >
+                        {selectedUser.isBlocked ? "Blocked" : "Active"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label className="text-right">Created</Label>
+                    <div className="col-span-3">
+                      {new Date(selectedUser.createdAt).toLocaleDateString()}
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Phone</Label>
-                  <div className="col-span-3">{selectedUser.phone}</div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Role</Label>
-                  <div className="col-span-3">
-                    <span
-                      className={`px-2 py-1 capitalize rounded-full text-xs ${
-                        selectedUser.role === "agent"
-                          ? "bg-blue-100 text-blue-800  dark:bg-blue-900 dark:text-blue-100"
-                          : selectedUser.role === "admin"
-                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-                          : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100"
-                      }`}
+
+                {/* Admin Actions Section */}
+                <div className="space-y-4 pt-4 border-t">
+                  <h3 className="font-semibold text-lg flex items-center">
+                    <Key className="h-4 w-4 mr-2" />
+                    Admin Actions
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <Input
+                        className="my-3"
+                        id="newPassword"
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter new password"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="confirmNewPassword">
+                        Confirm New Password
+                      </Label>
+                      <Input
+                        className="my-3"
+                        id="confirmNewPassword"
+                        type="password"
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        placeholder="Confirm new password"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleChangeUserPassword}
+                      disabled={
+                        !newPassword || newPassword !== confirmNewPassword
+                      }
+                      className="w-full"
                     >
-                      {selectedUser.role}
-                    </span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Status</Label>
-                  <div className="col-span-3">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        selectedUser.isBlocked
-                          ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
-                          : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-                      }`}
-                    >
-                      {selectedUser.isBlocked ? "Blocked" : "Active"}
-                    </span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Created</Label>
-                  <div className="col-span-3">
-                    {new Date(selectedUser.createdAt).toLocaleDateString()}
+                      Change User Password
+                    </Button>
                   </div>
                 </div>
               </div>
