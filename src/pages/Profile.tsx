@@ -60,9 +60,13 @@ const Profile = () => {
   };
 
   const handleSaveProfile = async () => {
+    console.log(formData);
     try {
       // Only send changed fields or name always
-      const updateData = { name: formData.name };
+      const updateData = {
+        name: formData.name,
+        phone: formData.phone,
+      };
       await updateProfile(updateData).unwrap();
       toast.success("Profile updated successfully");
       setIsEditing(false);
@@ -138,7 +142,6 @@ const Profile = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    disabled // Phone usually not editable
                   />
                 </div>
                 <div className="space-y-2">

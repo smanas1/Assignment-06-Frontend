@@ -42,6 +42,7 @@ export const walletApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getBalance: builder.query<{ balance: number }, void>({
       query: () => "/wallet/balance",
+      providesTags: ["Wallet"],
     }),
     addMoney: builder.mutation<Transaction, AddMoneyRequest>({
       query: (data) => ({
@@ -49,6 +50,7 @@ export const walletApi = api.injectEndpoints({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: ["Wallet"],
     }),
     withdrawMoney: builder.mutation<Transaction, AddMoneyRequest>({
       query: (data) => ({
@@ -56,6 +58,7 @@ export const walletApi = api.injectEndpoints({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: ["Wallet"],
     }),
     sendMoney: builder.mutation<Transaction, SendMoneyRequest>({
       query: (data) => ({
@@ -63,12 +66,14 @@ export const walletApi = api.injectEndpoints({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: ["Wallet"],
     }),
     getTransaction: builder.query<Transaction[], PaginationParams>({
       query: (params) => ({
         url: "/wallet/transactions",
         params,
       }),
+      providesTags: ["Wallet"],
     }),
 
     // Agents
@@ -79,6 +84,7 @@ export const walletApi = api.injectEndpoints({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: ["Wallet"],
     }),
     cashOut: builder.mutation<Transaction, AgentTransactionRequest>({
       query: (data) => ({
@@ -86,12 +92,14 @@ export const walletApi = api.injectEndpoints({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: ["Wallet"],
     }),
     getAgentTransactions: builder.query<Transaction[], PaginationParams>({
       query: (params) => ({
         url: "/agent/transactions",
         params,
       }),
+      providesTags: ["Transaction"],
     }),
     getCommissionHistory: builder.query<CommissionHistoryResponse, void>({
       query: () => "/agent/commissions",
