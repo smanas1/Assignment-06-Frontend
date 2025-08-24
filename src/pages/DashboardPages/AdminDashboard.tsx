@@ -148,6 +148,11 @@ const AdminDashboard = () => {
   const [dateRange, setDateRange] = useState("7"); // 7 days by default
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userStatusFilter, setUserStatusFilter] = useState<
+    "all" | "active" | "blocked"
+  >("all");
+  const [minAmountFilter, setMinAmountFilter] = useState<string>("");
+  const [maxAmountFilter, setMaxAmountFilter] = useState<string>("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [confirmationData, setConfirmationData] = useState({
     userId: "",
@@ -157,6 +162,8 @@ const AdminDashboard = () => {
   // --- ADD PAGINATION STATES ---
   const [transactionCurrentPage, setTransactionCurrentPage] = useState(1);
   const [userCurrentPage, setUserCurrentPage] = useState(1);
+  const [walletSearchTerm, setWalletSearchTerm] = useState("");
+  const [transactionSearchTerm, setTransactionSearchTerm] = useState("");
   const [walletCurrentPage, setWalletCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   // Extract data
@@ -166,13 +173,47 @@ const AdminDashboard = () => {
   const transactions = transactionsData?.data ?? [];
   // Filtered data
   const filteredUsers = users.filter((user: any) => {
+    // Existing Search Filter
     const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.phone.includes(searchTerm);
+
+    // Existing Role Filter
     const matchesRole =
       userRoleFilter === "all" || user.role === userRoleFilter;
-    return matchesSearch && matchesRole;
+
+    // --- NEW: Status Filter ---
+    let matchesStatus = true;
+    if (userStatusFilter === "active") {
+      matchesStatus = !user.isBlocked; // Active means NOT blocked
+    } else if (userStatusFilter === "blocked") {
+      matchesStatus = user.isBlocked;
+    }
+    // If userStatusFilter === "all", matchesStatus remains true
+
+    // --- NEW: Amount Filter (assuming user has a wallet with balance) ---
+    let matchesAmount = true;
+    const userBalance = user.wallet?.balance ?? 0; // Safely get balance or default to 0
+
+    const minAmountNum =
+      minAmountFilter !== "" ? parseFloat(minAmountFilter) : -Infinity;
+    const maxAmountNum =
+      maxAmountFilter !== "" ? parseFloat(maxAmountFilter) : Infinity;
+
+    // Only apply numeric filters if parsing was successful
+    if (!isNaN(minAmountNum) && !isNaN(maxAmountNum)) {
+      matchesAmount =
+        userBalance >= minAmountNum && userBalance <= maxAmountNum;
+    } else if (!isNaN(minAmountNum)) {
+      matchesAmount = userBalance >= minAmountNum;
+    } else if (!isNaN(maxAmountNum)) {
+      matchesAmount = userBalance <= maxAmountNum;
+    }
+
+    // Combine all filters with AND logic
+    return matchesSearch && matchesRole && matchesStatus && matchesAmount;
   });
+
   const filteredTransactions = transactions.filter(
     (transaction: Transaction) => {
       // Apply date range filter
@@ -614,31 +655,68 @@ const AdminDashboard = () => {
                   <Users className="mr-2 h-5 w-5" />
                   User Management
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                {/* Wrap all filters in a single flex container for better control */}
+                <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                  {/* Search Input */}
                   <div className="relative w-full sm:w-auto">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Search users..."
-                      className="pl-8 w-full sm:w-64 md:w-80"
+                      className="pl-8 w-full sm:w-48 md:w-56" // Slightly reduced width
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
-                  <div className="w-full sm:w-auto">
-                    <Select
-                      value={userRoleFilter}
-                      onValueChange={setUserRoleFilter}
-                    >
-                      <SelectTrigger className="w-full sm:w-40 md:w-48">
-                        <SelectValue placeholder="Filter by role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Roles</SelectItem>
-                        <SelectItem value="user">Users</SelectItem>
-                        <SelectItem value="agent">Agents</SelectItem>
-                        <SelectItem value="admin">Admins</SelectItem>
-                      </SelectContent>
-                    </Select>
+
+                  {/* Role Filter */}
+                  <Select
+                    value={userRoleFilter}
+                    onValueChange={setUserRoleFilter}
+                  >
+                    <SelectTrigger className="w-full sm:w-32">
+                      <SelectValue placeholder="Role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Roles</SelectItem>
+                      <SelectItem value="user">Users</SelectItem>
+                      <SelectItem value="agent">Agents</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Status Filter */}
+                  <Select
+                    value={userStatusFilter}
+                    onValueChange={(value) =>
+                      setUserStatusFilter(value as "all" | "active" | "blocked")
+                    } // Type assertion
+                  >
+                    <SelectTrigger className="w-full sm:w-32">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="blocked">Blocked</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Amount Range Filters */}
+                  <div className="flex items-center gap-1 w-full sm:w-auto">
+                    <Input
+                      type="number"
+                      placeholder="Min ৳"
+                      className="w-full sm:w-24 text-sm"
+                      value={minAmountFilter}
+                      onChange={(e) => setMinAmountFilter(e.target.value)}
+                    />
+                    <span className="text-muted-foreground mx-1">-</span>
+                    <Input
+                      type="number"
+                      placeholder="Max ৳"
+                      className="w-full sm:w-24 text-sm"
+                      value={maxAmountFilter}
+                      onChange={(e) => setMaxAmountFilter(e.target.value)}
+                    />
                   </div>
                 </div>
               </CardTitle>
@@ -656,7 +734,6 @@ const AdminDashboard = () => {
               ) : (
                 <>
                   <div className="rounded-md border overflow-x-auto">
-                    {" "}
                     {/* Allow horizontal scroll on small screens */}
                     <Table>
                       <TableHeader>
@@ -664,17 +741,17 @@ const AdminDashboard = () => {
                           <TableHead className="text-left">Name</TableHead>
                           <TableHead className="text-left hidden md:table-cell">
                             Phone
-                          </TableHead>{" "}
+                          </TableHead>
                           {/* Hide on small screens */}
                           <TableHead className="text-left">Role</TableHead>
                           <TableHead className="text-left">Status</TableHead>
                           <TableHead className="text-left hidden sm:table-cell">
                             Balance
-                          </TableHead>{" "}
+                          </TableHead>
                           {/* Hide on extra small screens */}
                           <TableHead className="text-left hidden lg:table-cell">
                             Created
-                          </TableHead>{" "}
+                          </TableHead>
                           {/* Hide on smaller screens */}
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -907,31 +984,44 @@ const AdminDashboard = () => {
         <div className="mb-8">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center">
                   <TrendingUp className="mr-2 h-5 w-5" />
                   Recent Transactions
                 </div>
-                <Select
-                  value={transactionTypeFilter}
-                  onValueChange={setTransactionTypeFilter}
-                >
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Filter by type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="top-up">Add Money</SelectItem>
-                    <SelectItem value="withdraw">Withdraw</SelectItem>
-                    <SelectItem value="send-money">Send Money</SelectItem>
-                    <SelectItem value="receive">Receive Money</SelectItem>
-                    <SelectItem value="cash-in">Cash-In</SelectItem>
-                    <SelectItem value="cash-out">Cash-Out</SelectItem>
-                    <SelectItem value="commission-earned">
-                      Commission
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                  {/* Simple Search Filter */}
+                  <div className="relative w-full sm:w-auto">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search transactions..."
+                      className="pl-8 w-full sm:w-64 md:w-80"
+                      value={transactionSearchTerm}
+                      onChange={(e) => setTransactionSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  {/* Keep existing type filter */}
+                  <Select
+                    value={transactionTypeFilter}
+                    onValueChange={setTransactionTypeFilter}
+                  >
+                    <SelectTrigger className="w-full sm:w-40">
+                      <SelectValue placeholder="Filter by type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="top-up">Add Money</SelectItem>
+                      <SelectItem value="withdraw">Withdraw</SelectItem>
+                      <SelectItem value="send-money">Send Money</SelectItem>
+                      <SelectItem value="receive">Receive Money</SelectItem>
+                      <SelectItem value="cash-in">Cash-In</SelectItem>
+                      <SelectItem value="cash-out">Cash-Out</SelectItem>
+                      <SelectItem value="commission-earned">
+                        Commission
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -946,131 +1036,217 @@ const AdminDashboard = () => {
                 </div>
               ) : (
                 <>
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Amount</TableHead>
-                          <TableHead>Sender</TableHead>
-                          <TableHead>Receiver</TableHead>
-                          <TableHead>Date</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {currentTransactions.length > 0 ? (
-                          currentTransactions.map((transaction) => (
-                            <TableRow key={transaction._id}>
-                              <TableCell>
-                                <span className="capitalize">
-                                  {transaction.type.replace("-", " ")}
-                                </span>
-                              </TableCell>
-                              <TableCell
-                                className={`font-medium ${
-                                  transaction.type.includes("send") ||
-                                  transaction.type.includes("withdraw") ||
-                                  transaction.type.includes("cash-out")
-                                    ? "text-red-500"
-                                    : "text-green-500"
-                                }`}
+                  {/* Filtered Transactions Data and Pagination */}
+                  {(() => {
+                    // Apply filters to transactions data
+                    const filteredTransactionsData = transactions.filter(
+                      (transaction: Transaction) => {
+                        // Existing date range filter
+                        const transactionDate = new Date(transaction.createdAt);
+                        const now = new Date();
+                        let daysToSubtract = 7;
+                        if (dateRange === "1") {
+                          daysToSubtract = 1;
+                        } else if (dateRange === "30") {
+                          daysToSubtract = 30;
+                        } else if (dateRange === "90") {
+                          daysToSubtract = 90;
+                        }
+                        const startDate = new Date(now);
+                        startDate.setDate(now.getDate() - daysToSubtract);
+                        const isWithinDateRange = transactionDate >= startDate;
+
+                        // Existing type filter
+                        const matchesType =
+                          transactionTypeFilter === "all" ||
+                          transaction.type === transactionTypeFilter;
+
+                        // New search filter
+                        const matchesSearch =
+                          transaction.type
+                            .toLowerCase()
+                            .includes(transactionSearchTerm.toLowerCase()) ||
+                          (transaction.sender?.name
+                            ?.toLowerCase()
+                            .includes(transactionSearchTerm.toLowerCase()) ??
+                            false) ||
+                          (transaction.sender?.phone
+                            ?.toLowerCase()
+                            .includes(transactionSearchTerm.toLowerCase()) ??
+                            false) ||
+                          (transaction.receiver?.name
+                            ?.toLowerCase()
+                            .includes(transactionSearchTerm.toLowerCase()) ??
+                            false) ||
+                          (transaction.receiver?.phone
+                            ?.toLowerCase()
+                            .includes(transactionSearchTerm.toLowerCase()) ??
+                            false) ||
+                          transaction.amount
+                            .toString()
+                            .includes(transactionSearchTerm);
+
+                        return (
+                          isWithinDateRange && matchesType && matchesSearch
+                        );
+                      }
+                    );
+
+                    // --- PAGINATION LOGIC FOR TRANSACTIONS (updated to use filtered data) ---
+                    const transactionIndexOfLastItem =
+                      transactionCurrentPage * itemsPerPage;
+                    const transactionIndexOfFirstItem =
+                      transactionIndexOfLastItem - itemsPerPage;
+                    const currentTransactionsFiltered =
+                      filteredTransactionsData.slice(
+                        transactionIndexOfFirstItem,
+                        transactionIndexOfLastItem
+                      );
+                    const transactionTotalPagesFiltered = Math.ceil(
+                      filteredTransactionsData.length / itemsPerPage
+                    );
+
+                    return (
+                      <>
+                        <div className="rounded-md border overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Type</TableHead>
+                                <TableHead>Amount</TableHead>
+                                <TableHead>Sender</TableHead>
+                                <TableHead>Receiver</TableHead>
+                                <TableHead>Date</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {currentTransactionsFiltered.length > 0 ? (
+                                currentTransactionsFiltered.map(
+                                  (transaction) => (
+                                    <TableRow key={transaction._id}>
+                                      <TableCell>
+                                        <span className="capitalize">
+                                          {transaction.type.replace("-", " ")}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell
+                                        className={`font-medium ${
+                                          transaction.type.includes("send") ||
+                                          transaction.type.includes(
+                                            "withdraw"
+                                          ) ||
+                                          transaction.type.includes("cash-out")
+                                            ? "text-red-500"
+                                            : "text-green-500"
+                                        }`}
+                                      >
+                                        {transaction.type.includes("send") ||
+                                        transaction.type.includes("withdraw") ||
+                                        transaction.type.includes("cash-out")
+                                          ? "-"
+                                          : "+"}
+                                        ৳{transaction.amount.toFixed(2)}
+                                      </TableCell>
+                                      <TableCell>
+                                        {transaction.sender
+                                          ? `${transaction.sender.name} (${transaction.sender.phone})`
+                                          : "System"}
+                                      </TableCell>
+                                      <TableCell>
+                                        {transaction.receiver
+                                          ? `${transaction.receiver.name} (${transaction.receiver.phone})`
+                                          : "System"}
+                                      </TableCell>
+                                      <TableCell>
+                                        {new Date(
+                                          transaction.createdAt
+                                        ).toLocaleString()}
+                                      </TableCell>
+                                    </TableRow>
+                                  )
+                                )
+                              ) : (
+                                <TableRow>
+                                  <TableCell
+                                    colSpan={5}
+                                    className="text-center py-8 text-muted-foreground"
+                                  >
+                                    No transactions found
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </TableBody>
+                          </Table>
+                        </div>
+
+                        {/* Pagination Controls for Transactions (updated to use filtered data) */}
+                        {filteredTransactionsData.length > itemsPerPage && (
+                          <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+                            <div className="text-sm text-muted-foreground">
+                              Showing {transactionIndexOfFirstItem + 1} to{" "}
+                              {Math.min(
+                                transactionIndexOfLastItem,
+                                filteredTransactionsData.length
+                              )}{" "}
+                              of {filteredTransactionsData.length} transactions
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handlePageChange(
+                                    setTransactionCurrentPage,
+                                    transactionCurrentPage - 1
+                                  )
+                                }
+                                disabled={transactionCurrentPage === 1}
                               >
-                                {transaction.type.includes("send") ||
-                                transaction.type.includes("withdraw") ||
-                                transaction.type.includes("cash-out")
-                                  ? "-"
-                                  : "+"}
-                                ৳{transaction.amount.toFixed(2)}
-                              </TableCell>
-                              <TableCell>
-                                {transaction.sender
-                                  ? `${transaction.sender.name} (${transaction.sender.phone})`
-                                  : "System"}
-                              </TableCell>
-                              <TableCell>
-                                {transaction.receiver
-                                  ? `${transaction.receiver.name} (${transaction.receiver.phone})`
-                                  : "System"}
-                              </TableCell>
-                              <TableCell>
-                                {new Date(
-                                  transaction.createdAt
-                                ).toLocaleString()}
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell
-                              colSpan={5}
-                              className="text-center py-8 text-muted-foreground"
-                            >
-                              No transactions found
-                            </TableCell>
-                          </TableRow>
+                                <ChevronLeft className="h-4 w-4" />
+                              </Button>
+                              {[...Array(transactionTotalPagesFiltered)].map(
+                                (_, i) => (
+                                  <Button
+                                    key={i}
+                                    variant={
+                                      transactionCurrentPage === i + 1
+                                        ? "default"
+                                        : "outline"
+                                    }
+                                    size="sm"
+                                    onClick={() =>
+                                      handlePageChange(
+                                        setTransactionCurrentPage,
+                                        i + 1
+                                      )
+                                    }
+                                  >
+                                    {i + 1}
+                                  </Button>
+                                )
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handlePageChange(
+                                    setTransactionCurrentPage,
+                                    transactionCurrentPage + 1
+                                  )
+                                }
+                                disabled={
+                                  transactionCurrentPage ===
+                                  transactionTotalPagesFiltered
+                                }
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
                         )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  {/* Pagination Controls for Transactions */}
-                  {filteredTransactions.length > itemsPerPage && (
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="text-sm text-muted-foreground">
-                        Showing {transactionIndexOfFirstItem + 1} to{" "}
-                        {Math.min(
-                          transactionIndexOfLastItem,
-                          filteredTransactions.length
-                        )}{" "}
-                        of {filteredTransactions.length} transactions
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handlePageChange(
-                              setTransactionCurrentPage,
-                              transactionCurrentPage - 1
-                            )
-                          }
-                          disabled={transactionCurrentPage === 1}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        {[...Array(transactionTotalPages)].map((_, i) => (
-                          <Button
-                            key={i}
-                            variant={
-                              transactionCurrentPage === i + 1
-                                ? "default"
-                                : "outline"
-                            }
-                            size="sm"
-                            onClick={() =>
-                              handlePageChange(setTransactionCurrentPage, i + 1)
-                            }
-                          >
-                            {i + 1}
-                          </Button>
-                        ))}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handlePageChange(
-                              setTransactionCurrentPage,
-                              transactionCurrentPage + 1
-                            )
-                          }
-                          disabled={
-                            transactionCurrentPage === transactionTotalPages
-                          }
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                      </>
+                    );
+                  })()}
                 </>
               )}
             </CardContent>
@@ -1080,13 +1256,35 @@ const AdminDashboard = () => {
         <div className="mb-8">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center">
                   <DollarSign className="mr-2 h-5 w-5" />
                   Wallet Overview
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Total Wallets: {wallets.length}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                  {/* Filter Input - Similar to User Management */}
+                  <div className="relative w-full sm:w-auto">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search wallets..."
+                      className="pl-8 w-full sm:w-64 md:w-80"
+                      value={walletSearchTerm}
+                      onChange={(e) => setWalletSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  {/* Placeholder for potential future filters (e.g., Balance Range) */}
+                  {/* <div className="w-full sm:w-auto">
+                   <Select>
+                     <SelectTrigger className="w-full sm:w-40">
+                       <SelectValue placeholder="Filter by..." />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="all">All Wallets</SelectItem>
+                       <SelectItem value="high-balance">High Balance</SelectItem>
+                       <SelectItem value="low-balance">Low Balance</SelectItem>
+                     </SelectContent>
+                   </Select>
+                 </div> */}
                 </div>
               </CardTitle>
             </CardHeader>
@@ -1102,101 +1300,145 @@ const AdminDashboard = () => {
                 </div>
               ) : (
                 <>
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Owner</TableHead>
-                          <TableHead>Phone</TableHead>
-                          <TableHead>Balance</TableHead>
-                          <TableHead>Created</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {currentWallets.length > 0 ? (
-                          currentWallets.map((wallet) => (
-                            <TableRow key={wallet._id}>
-                              <TableCell className="font-medium">
-                                {wallet.owner.name}
-                              </TableCell>
-                              <TableCell>{wallet.owner.phone}</TableCell>
-                              <TableCell className="font-medium">
-                                ৳{wallet.balance.toFixed(2)}
-                              </TableCell>
-                              <TableCell>
-                                {new Date(
-                                  wallet.createdAt
-                                ).toLocaleDateString()}
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell
-                              colSpan={4}
-                              className="text-center py-8 text-muted-foreground"
-                            >
-                              No wallets found
-                            </TableCell>
-                          </TableRow>
+                  {/* Filtered Wallets Data */}
+                  {(() => {
+                    // Apply filters to wallets data
+                    const filteredWallets = wallets.filter((wallet: Wallet) => {
+                      const matchesSearch =
+                        wallet.owner.name
+                          .toLowerCase()
+                          .includes(walletSearchTerm.toLowerCase()) ||
+                        wallet.owner.phone.includes(walletSearchTerm) ||
+                        wallet._id
+                          .toLowerCase()
+                          .includes(walletSearchTerm.toLowerCase());
+                      // Add more filter conditions here if needed (e.g., balance range)
+                      // const matchesBalanceRange = ...;
+                      return matchesSearch; // && matchesOtherFilters...
+                    });
+
+                    // --- PAGINATION LOGIC FOR WALLETS (updated to use filtered data) ---
+                    const walletIndexOfLastItem =
+                      walletCurrentPage * itemsPerPage;
+                    const walletIndexOfFirstItem =
+                      walletIndexOfLastItem - itemsPerPage;
+                    const currentWallets = filteredWallets.slice(
+                      walletIndexOfFirstItem,
+                      walletIndexOfLastItem
+                    );
+                    const walletTotalPages = Math.ceil(
+                      filteredWallets.length / itemsPerPage
+                    );
+
+                    return (
+                      <>
+                        <div className="rounded-md border overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Owner</TableHead>
+                                <TableHead>Phone</TableHead>
+                                <TableHead>Balance</TableHead>
+                                <TableHead>Created</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {currentWallets.length > 0 ? (
+                                currentWallets.map((wallet) => (
+                                  <TableRow key={wallet._id}>
+                                    <TableCell className="font-medium">
+                                      {wallet.owner.name}
+                                    </TableCell>
+                                    <TableCell>{wallet.owner.phone}</TableCell>
+                                    <TableCell className="font-medium">
+                                      ৳{wallet.balance.toFixed(2)}
+                                    </TableCell>
+                                    <TableCell>
+                                      {new Date(
+                                        wallet.createdAt
+                                      ).toLocaleDateString()}
+                                    </TableCell>
+                                  </TableRow>
+                                ))
+                              ) : (
+                                <TableRow>
+                                  <TableCell
+                                    colSpan={4}
+                                    className="text-center py-8 text-muted-foreground"
+                                  >
+                                    No wallets found
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </TableBody>
+                          </Table>
+                        </div>
+
+                        {/* Pagination Controls for Wallets (updated to use filtered data) */}
+                        {filteredWallets.length > itemsPerPage && (
+                          <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+                            <div className="text-sm text-muted-foreground">
+                              Showing {walletIndexOfFirstItem + 1} to{" "}
+                              {Math.min(
+                                walletIndexOfLastItem,
+                                filteredWallets.length
+                              )}{" "}
+                              of {filteredWallets.length} wallets
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handlePageChange(
+                                    setWalletCurrentPage,
+                                    walletCurrentPage - 1
+                                  )
+                                }
+                                disabled={walletCurrentPage === 1}
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                              </Button>
+                              {[...Array(walletTotalPages)].map((_, i) => (
+                                <Button
+                                  key={i}
+                                  variant={
+                                    walletCurrentPage === i + 1
+                                      ? "default"
+                                      : "outline"
+                                  }
+                                  size="sm"
+                                  onClick={() =>
+                                    handlePageChange(
+                                      setWalletCurrentPage,
+                                      i + 1
+                                    )
+                                  }
+                                >
+                                  {i + 1}
+                                </Button>
+                              ))}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handlePageChange(
+                                    setWalletCurrentPage,
+                                    walletCurrentPage + 1
+                                  )
+                                }
+                                disabled={
+                                  walletCurrentPage === walletTotalPages
+                                }
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
                         )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  {/* Pagination Controls for Wallets */}
-                  {wallets.length > itemsPerPage && (
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="text-sm text-muted-foreground">
-                        Showing {walletIndexOfFirstItem + 1} to{" "}
-                        {Math.min(walletIndexOfLastItem, wallets.length)} of{" "}
-                        {wallets.length} wallets
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handlePageChange(
-                              setWalletCurrentPage,
-                              walletCurrentPage - 1
-                            )
-                          }
-                          disabled={walletCurrentPage === 1}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        {[...Array(walletTotalPages)].map((_, i) => (
-                          <Button
-                            key={i}
-                            variant={
-                              walletCurrentPage === i + 1
-                                ? "default"
-                                : "outline"
-                            }
-                            size="sm"
-                            onClick={() =>
-                              handlePageChange(setWalletCurrentPage, i + 1)
-                            }
-                          >
-                            {i + 1}
-                          </Button>
-                        ))}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handlePageChange(
-                              setWalletCurrentPage,
-                              walletCurrentPage + 1
-                            )
-                          }
-                          disabled={walletCurrentPage === walletTotalPages}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                      </>
+                    );
+                  })()}
                 </>
               )}
             </CardContent>
