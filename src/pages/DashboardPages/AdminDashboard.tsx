@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/admin/AdminDashboard.tsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAppDispatch } from "@/hooks";
 import { logout } from "@/redux/slices/authSlice";
@@ -53,7 +53,6 @@ import {
   Eye,
   Ban,
   CheckCircle,
-  XCircle,
   BarChart3,
   PieChart,
   Calendar,
@@ -86,6 +85,7 @@ import {
 } from "recharts";
 // Define TypeScript interfaces
 interface User {
+  wallet: any;
   _id: string;
   name: string;
   phone: string;
@@ -93,31 +93,7 @@ interface User {
   isBlocked: boolean;
   createdAt: string;
 }
-interface Wallet {
-  _id: string;
-  owner: {
-    name: string;
-    phone: string;
-  };
-  balance: number;
-  currency: string;
-  createdAt: string;
-}
-interface Transaction {
-  _id: string;
-  type: string;
-  amount: number;
-  sender?: {
-    name: string;
-    phone: string;
-  };
-  receiver?: {
-    name: string;
-    phone: string;
-  };
-  wallet: string;
-  createdAt: string;
-}
+
 const AdminDashboard = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -172,7 +148,7 @@ const AdminDashboard = () => {
   const wallets = walletsData?.data ?? [];
   const transactions = transactionsData?.data ?? [];
   // Filtered data
-  const filteredUsers = users.filter((user: any) => {
+  const filteredUsers = users.filter((user) => {
     // Existing Search Filter
     const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -193,7 +169,12 @@ const AdminDashboard = () => {
 
     // --- NEW: Amount Filter (assuming user has a wallet with balance) ---
     let matchesAmount = true;
-    const userBalance = user.wallet?.balance ?? 0; // Safely get balance or default to 0
+    const userBalance =
+      typeof user.wallet === "object" &&
+      user.wallet !== null &&
+      "balance" in user.wallet
+        ? (user.wallet as { balance: number }).balance
+        : 0; // Safely get balance or default to 0
 
     const minAmountNum =
       minAmountFilter !== "" ? parseFloat(minAmountFilter) : -Infinity;
@@ -214,39 +195,28 @@ const AdminDashboard = () => {
     return matchesSearch && matchesRole && matchesStatus && matchesAmount;
   });
 
-  const filteredTransactions = transactions.filter(
-    (transaction: Transaction) => {
-      // Apply date range filter
-      const transactionDate = new Date(transaction.createdAt);
-      const now = new Date();
-      let daysToSubtract = 7;
-      if (dateRange === "1") {
-        daysToSubtract = 1;
-      } else if (dateRange === "30") {
-        daysToSubtract = 30;
-      } else if (dateRange === "90") {
-        daysToSubtract = 90;
-      }
-      const startDate = new Date(now);
-      startDate.setDate(now.getDate() - daysToSubtract);
-      const isWithinDateRange = transactionDate >= startDate;
-      // Apply type filter
-      const matchesType =
-        transactionTypeFilter === "all" ||
-        transaction.type === transactionTypeFilter;
-      return isWithinDateRange && matchesType;
+  const filteredTransactions = transactions.filter((transaction) => {
+    // Apply date range filter
+    const transactionDate = new Date(transaction.createdAt);
+    const now = new Date();
+    let daysToSubtract = 7;
+    if (dateRange === "1") {
+      daysToSubtract = 1;
+    } else if (dateRange === "30") {
+      daysToSubtract = 30;
+    } else if (dateRange === "90") {
+      daysToSubtract = 90;
     }
-  );
+    const startDate = new Date(now);
+    startDate.setDate(now.getDate() - daysToSubtract);
+    const isWithinDateRange = transactionDate >= startDate;
+    // Apply type filter
+    const matchesType =
+      transactionTypeFilter === "all" ||
+      transaction.type === transactionTypeFilter;
+    return isWithinDateRange && matchesType;
+  });
   // --- PAGINATION LOGIC FOR TRANSACTIONS ---
-  const transactionIndexOfLastItem = transactionCurrentPage * itemsPerPage;
-  const transactionIndexOfFirstItem = transactionIndexOfLastItem - itemsPerPage;
-  const currentTransactions = filteredTransactions.slice(
-    transactionIndexOfFirstItem,
-    transactionIndexOfLastItem
-  );
-  const transactionTotalPages = Math.ceil(
-    filteredTransactions.length / itemsPerPage
-  );
 
   // --- PAGINATION LOGIC FOR USERS ---
   const userIndexOfLastItem = userCurrentPage * itemsPerPage;
@@ -258,13 +228,6 @@ const AdminDashboard = () => {
   const userTotalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
   // --- PAGINATION LOGIC FOR WALLETS ---
-  const walletIndexOfLastItem = walletCurrentPage * itemsPerPage;
-  const walletIndexOfFirstItem = walletIndexOfLastItem - itemsPerPage;
-  const currentWallets = wallets.slice(
-    walletIndexOfFirstItem,
-    walletIndexOfLastItem
-  );
-  const walletTotalPages = Math.ceil(wallets.length / itemsPerPage);
 
   const handlePageChange = (
     setter: React.Dispatch<React.SetStateAction<number>>,
@@ -324,17 +287,40 @@ const AdminDashboard = () => {
   const totalUsers = users.length;
   const totalAgents = agents.length;
   const totalTransactions = transactions.length;
-  const totalTransactionVolume = transactions.reduce(
-    (sum, t) => sum + t.amount,
+
+  const totalTransactionVolume: number = transactions.reduce(
+    (sum: number, t: any) => sum + t.amount,
     0
   );
   // Calculate active users and agents
-  const activeUsers = users.filter((u) => !u.isBlocked).length;
-  const activeAgents = agents.filter((a) => !a.isBlocked).length;
+  interface ActiveUser {
+    wallet: any;
+    _id: string;
+    name: string;
+    phone: string;
+    role: string;
+    isBlocked: boolean;
+    createdAt: string;
+  }
+
+  const activeUsers: number = users.filter(
+    (u: ActiveUser) => !u.isBlocked
+  ).length;
+  interface Agent {
+    _id: string;
+    name: string;
+    phone: string;
+    role: string;
+    isBlocked: boolean;
+    createdAt: string;
+    // Add other agent-specific fields if needed
+  }
+
+  const activeAgents: number = agents.filter((a: Agent) => !a.isBlocked).length;
   // Prepare data for charts
   // Transaction volume by type
   const transactionVolumeByType = filteredTransactions.reduce(
-    (acc: Record<string, number>, transaction) => {
+    (acc: Record<string, number>, transaction: any) => {
       const type = transaction.type;
       acc[type] = (acc[type] || 0) + transaction.amount;
       return acc;
@@ -365,7 +351,7 @@ const AdminDashboard = () => {
     // Count transactions for each day
     filteredTransactions.forEach((transaction) => {
       const dateStr = transaction.createdAt.split("T")[0];
-      if (transactionCounts.hasOwnProperty(dateStr)) {
+      if (Object.prototype.hasOwnProperty.call(transactionCounts, dateStr)) {
         transactionCounts[dateStr] += 1;
         transactionVolumes[dateStr] += transaction.amount;
       }
@@ -553,10 +539,10 @@ const AdminDashboard = () => {
                         fill="#8884d8"
                         dataKey="value"
                         label={({ name, percent }) =>
-                          `${name}: ${(percent * 100).toFixed(0)}%`
+                          `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`
                         }
                       >
-                        {userDistribution.map((entry, index) => (
+                        {userDistribution.map((_entry, index) => (
                           <Cell
                             key={`cell-${index}`}
                             fill={COLORS[index % COLORS.length]}
@@ -758,7 +744,7 @@ const AdminDashboard = () => {
                       </TableHeader>
                       <TableBody>
                         {currentUsers.length > 0 ? (
-                          currentUsers.map((user) => (
+                          currentUsers.map((user: User) => (
                             <TableRow key={user._id} className="border-b">
                               <TableCell className="font-medium">
                                 <div>
@@ -1040,7 +1026,7 @@ const AdminDashboard = () => {
                   {(() => {
                     // Apply filters to transactions data
                     const filteredTransactionsData = transactions.filter(
-                      (transaction: Transaction) => {
+                      (transaction: any) => {
                         // Existing date range filter
                         const transactionDate = new Date(transaction.createdAt);
                         const now = new Date();
@@ -1122,7 +1108,7 @@ const AdminDashboard = () => {
                             <TableBody>
                               {currentTransactionsFiltered.length > 0 ? (
                                 currentTransactionsFiltered.map(
-                                  (transaction) => (
+                                  (transaction: any) => (
                                     <TableRow key={transaction._id}>
                                       <TableCell>
                                         <span className="capitalize">
@@ -1303,7 +1289,7 @@ const AdminDashboard = () => {
                   {/* Filtered Wallets Data */}
                   {(() => {
                     // Apply filters to wallets data
-                    const filteredWallets = wallets.filter((wallet: Wallet) => {
+                    const filteredWallets = wallets.filter((wallet: any) => {
                       const matchesSearch =
                         wallet.owner.name
                           .toLowerCase()
@@ -1344,7 +1330,7 @@ const AdminDashboard = () => {
                             </TableHeader>
                             <TableBody>
                               {currentWallets.length > 0 ? (
-                                currentWallets.map((wallet) => (
+                                currentWallets.map((wallet: any) => (
                                   <TableRow key={wallet._id}>
                                     <TableCell className="font-medium">
                                       {wallet.owner.name}

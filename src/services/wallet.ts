@@ -98,22 +98,25 @@ export const walletApi = api.injectEndpoints({
       providesTags: ["Transaction"],
     }),
     // Admin
-    getAllUsers: builder.query<User[], void>({
+    getAllUsers: builder.query<{ data: User[] }, void>({
       query: () => "/admin/users",
       providesTags: ["User"],
     }),
-    getAllAgents: builder.query<User[], void>({
+    getAllAgents: builder.query<{ data: User[] }, void>({
       query: () => "/admin/agents",
       providesTags: ["User"],
     }),
-    getAllTransactions: builder.query<Transaction[], PaginationParams>({
+    getAllTransactions: builder.query<
+      { data: Transaction[] },
+      PaginationParams
+    >({
       query: (params) => ({
         url: "/admin/transactions",
         params,
       }),
       providesTags: ["Transaction"],
     }),
-    getAllWallets: builder.query<Wallet[], void>({
+    getAllWallets: builder.query<{ data: Wallet[] }, void>({
       query: () => "/admin/wallets",
       providesTags: ["Wallet"],
     }),
