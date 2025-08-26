@@ -40,7 +40,7 @@ interface CommissionHistoryResponse {
 
 export const walletApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getBalance: builder.query<{ balance: number }, void>({
+    getBalance: builder.query({
       query: () => "/wallet/balance",
       providesTags: ["Wallet"],
     }),
@@ -68,7 +68,7 @@ export const walletApi = api.injectEndpoints({
       }),
       invalidatesTags: ["Wallet"],
     }),
-    getTransaction: builder.query<Transaction[], PaginationParams>({
+    getTransaction: builder.query({
       query: (params) => ({
         url: "/wallet/transactions",
         params,
