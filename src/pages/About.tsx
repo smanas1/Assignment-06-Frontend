@@ -102,12 +102,13 @@ const About = () => {
                 <div className="bg-gradient-to-br from-primary/20 to-blue-500/20 h-full w-full flex items-center justify-center">
                   <iframe
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d8614.248089889752!2d88.60879336771407!3d24.386886486705503!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39fbef003d4cf6d1%3A0xa1d9f4ef690e3e46!2zQmltYW4gQ2hhdHRvciDgpqzgpr_gpq7gpr7gpqgg4Kaa4Kak4KeN4Kak4KeN4Kas4Kaw!5e1!3m2!1sen!2sbd!4v1756217880556!5m2!1sen!2sbd"
-                    width="600"
-                    height="450"
+                    width="100%"
+                    height="100%"
                     style={{ border: 0 }}
                     allowFullScreen
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
+                    className="rounded-2xl"
                   ></iframe>
                 </div>
               </div>
@@ -182,7 +183,7 @@ const About = () => {
           </div>
         </section>
 
-        {/* Journey Section - Updated to match the provided design */}
+        {/* Journey Section - Fixed for light/dark mode */}
         <section className="py-20">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-16">
@@ -195,45 +196,46 @@ const About = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gray-900/50 backdrop-blur-sm">
-                <CardHeader className="bg-gray-900/80 p-4">
-                  <CardTitle className="flex items-center text-white">
-                    <Award className="mr-2 h-5 w-5" />
+              {/* Updated cards with proper light/dark mode support */}
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader className="bg-primary/5 py-4">
+                  <CardTitle className="flex items-center">
+                    <Award className="mr-2 h-5 w-5 text-primary" />
                     <span className="font-semibold">2024 Launch</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4">
-                  <p className="text-sm text-gray-300">
+                <CardContent className="pt-4">
+                  <p className="text-sm text-muted-foreground">
                     Started with a vision to make digital payments accessible to
                     everyone in Bangladesh.
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gray-900/50 backdrop-blur-sm">
-                <CardHeader className="bg-gray-900/80 p-4">
-                  <CardTitle className="flex items-center text-white">
-                    <Users className="mr-2 h-5 w-5" />
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader className="bg-primary/5 py-4">
+                  <CardTitle className="flex items-center">
+                    <Users className="mr-2 h-5 w-5 text-primary" />
                     <span className="font-semibold">100K+ Users</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4">
-                  <p className="text-sm text-gray-300">
+                <CardContent className="pt-4">
+                  <p className="text-sm text-muted-foreground">
                     Serving over 100,000 satisfied users across the country with
                     reliable service.
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gray-900/50 backdrop-blur-sm">
-                <CardHeader className="bg-gray-900/80 p-4">
-                  <CardTitle className="flex items-center text-white">
-                    <MapPin className="mr-2 h-5 w-5" />
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader className="bg-primary/5 py-4">
+                  <CardTitle className="flex items-center">
+                    <MapPin className="mr-2 h-5 w-5 text-primary" />
                     <span className="font-semibold">5K+ Agents</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4">
-                  <p className="text-sm text-gray-300">
+                <CardContent className="pt-4">
+                  <p className="text-sm text-muted-foreground">
                     Partnered with 5,000+ agents providing cash-in and cash-out
                     services nationwide.
                   </p>
@@ -241,7 +243,7 @@ const About = () => {
               </Card>
             </div>
 
-            <div className="bg-gradient-to-r from-primary/10 to-blue-500/10 rounded-3xl p-8">
+            <div className="bg-primary/5 rounded-3xl p-8">
               <div className="max-w-3xl mx-auto text-center">
                 <h3 className="text-2xl font-bold mb-4">Building the Future</h3>
                 <p className="text-lg text-muted-foreground mb-4">
