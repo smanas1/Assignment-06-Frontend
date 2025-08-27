@@ -45,8 +45,6 @@ import {
   ChevronRight,
   DollarSign,
   Send,
-  Download,
-  Upload,
   TrendingUp,
   User,
   LogOut,
@@ -98,7 +96,9 @@ interface Transaction {
 }
 
 const UserDashboard = () => {
-  const { data: balanceData, isLoading: balanceLoading } = useGetBalanceQuery();
+  const { data: balanceData, isLoading: balanceLoading } = useGetBalanceQuery(
+    {}
+  );
   const { data: transactionsData, isLoading: transactionsLoading } =
     useGetTransactionQuery({});
 
@@ -147,7 +147,7 @@ const UserDashboard = () => {
       if (dateRangeFilter !== "all") {
         const transactionDate = new Date(transaction.createdAt);
         const now = new Date();
-        let startDate = new Date();
+        const startDate = new Date();
 
         switch (dateRangeFilter) {
           case "today":
@@ -189,7 +189,7 @@ const UserDashboard = () => {
   // Chart data preparation
   // Transaction volume by type
   const transactionVolumeByType = filteredTransactions.reduce(
-    (acc: Record<string, number>, transaction) => {
+    (acc: Record<string, number>, transaction: Transaction) => {
       const type = transaction.type;
       acc[type] = (acc[type] || 0) + transaction.amount;
       return acc;
@@ -222,9 +222,9 @@ const UserDashboard = () => {
     }
 
     // Count transactions for each day
-    filteredTransactions.forEach((transaction) => {
+    filteredTransactions.forEach((transaction: Transaction) => {
       const dateStr = transaction.createdAt.split("T")[0];
-      if (transactionCounts.hasOwnProperty(dateStr)) {
+      if (Object.prototype.hasOwnProperty.call(transactionCounts, dateStr)) {
         transactionCounts[dateStr] += 1;
         transactionVolumes[dateStr] += transaction.amount;
       }
@@ -239,11 +239,12 @@ const UserDashboard = () => {
 
   // Transaction distribution
   const sendTransactions = filteredTransactions.filter(
-    (t) => t.type === "send-money" || t.type === "withdraw"
+    (t: { type: string }) => t.type === "send-money" || t.type === "withdraw"
   ).length;
 
   const receiveTransactions = filteredTransactions.filter(
-    (t) => t.type === "receive" || t.type === "top-up" || t.type === "cash-in"
+    (t: { type: string }) =>
+      t.type === "receive" || t.type === "top-up" || t.type === "cash-in"
   ).length;
 
   const transactionDistribution = [
