@@ -84,10 +84,55 @@ const Login = () => {
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col mt-6">
+          <CardFooter className="flex flex-col mt-6 space-y-4">
             <Button className="w-full" type="submit" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
+
+            <div className="w-full grid grid-cols-3 gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                className="py-6"
+                onClick={() => {
+                  setFormData({
+                    phone: "01303839889", // Standard admin phone format
+                    password: "111111",
+                  });
+                }}
+              >
+                Admin
+              </Button>
+
+              <Button
+                type="button"
+                variant="secondary"
+                className="py-6"
+                onClick={() => {
+                  setFormData({
+                    phone: "01303839888", // Standard agent phone format
+                    password: "111111",
+                  });
+                }}
+              >
+                Agent
+              </Button>
+
+              <Button
+                type="button"
+                variant="secondary"
+                className="py-6"
+                onClick={() => {
+                  setFormData({
+                    phone: "01303839887", // Standard user phone format
+                    password: "111111",
+                  });
+                }}
+              >
+                User
+              </Button>
+            </div>
+
             <div className="mt-4 text-center text-sm">
               Don't have an account?{" "}
               <Link to="/register" className="text-primary hover:underline">
