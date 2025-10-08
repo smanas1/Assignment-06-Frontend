@@ -88,7 +88,7 @@ export const authApi = api.injectEndpoints({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, error, { userId }) => [
+      invalidatesTags: (_result, _error, { userId }) => [
         { type: "User", id: userId },
         "User",
       ],
@@ -105,7 +105,7 @@ export const authApi = api.injectEndpoints({
         method: "PUT",
         body: { newPassword },
       }),
-      invalidatesTags: (result, error, { userId }) => [
+      invalidatesTags: (_result, _error, { userId }) => [
         { type: "User", id: userId },
       ],
     }),
