@@ -26,6 +26,7 @@ export const authApi = api.injectEndpoints({
         method: "POST",
         body: credentials,
       }),
+      invalidatesTags: ["User"],
     }),
     register: builder.mutation<AuthResponse, RegisterRequest>({
       query: (userData) => ({
@@ -33,15 +34,20 @@ export const authApi = api.injectEndpoints({
         method: "POST",
         body: userData,
       }),
+      invalidatesTags: ["User"],
     }),
     logout: builder.mutation<void, void>({
       query: () => ({
         url: "/auth/logout",
         method: "POST",
       }),
+      invalidatesTags: ["User"],
     }),
     getMe: builder.query<AuthResponse, void>({
       query: () => "/auth/me",
+      providesTags: (result) => [
+        { type: "User", id: result?.user?._id || "CURRENT_USER" },
+      ],
     }),
     updateProfile: builder.mutation<AuthResponse, { name: string }>({
       query: (data) => ({
@@ -49,6 +55,10 @@ export const authApi = api.injectEndpoints({
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: (result) => [
+        { type: "User", id: result?.user?._id || "CURRENT_USER" },
+        "User",
+      ],
     }),
     changePassword: builder.mutation<
       void,
@@ -62,6 +72,7 @@ export const authApi = api.injectEndpoints({
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: ["User"],
     }),
     adminUpdateUser: builder.mutation<
       User,
@@ -77,6 +88,10 @@ export const authApi = api.injectEndpoints({
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: (result, error, { userId }) => [
+        { type: "User", id: userId },
+        "User",
+      ],
     }),
     adminChangeUserPassword: builder.mutation<
       void,
@@ -90,6 +105,9 @@ export const authApi = api.injectEndpoints({
         method: "PUT",
         body: { newPassword },
       }),
+      invalidatesTags: (result, error, { userId }) => [
+        { type: "User", id: userId },
+      ],
     }),
   }),
 });

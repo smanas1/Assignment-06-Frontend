@@ -27,8 +27,9 @@ function App() {
   const { data, isError } = useGetMeQuery(undefined, { skip: !token });
 
   useEffect(() => {
-    if (data) {
+    if (data && token) {
       dispatch(setCredentials({ user: data.user, token }));
+      console.log("called");
     } else if (isError) {
       dispatch(logout());
     }
