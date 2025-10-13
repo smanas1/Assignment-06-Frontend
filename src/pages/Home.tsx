@@ -10,11 +10,8 @@ import {
   CreditCard,
   Eye,
   Star as StarIcon,
-  Download,
   CheckCircle,
   Play,
-  ChevronLeft,
-  ChevronRight
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import {
@@ -45,27 +42,31 @@ const Home = () => {
     {
       icon: DollarSign,
       title: "Instant Transfers",
-      description: "Send money to anyone instantly with just their phone number. No more waiting for bank transfers.",
-      color: "primary"
+      description:
+        "Send money to anyone instantly with just their phone number. No more waiting for bank transfers.",
+      color: "primary",
     },
     {
       icon: Shield,
       title: "Military-Grade Security",
-      description: "Bank-level encryption and multi-factor authentication to keep your money and data completely secure.",
-      color: "blue"
+      description:
+        "Bank-level encryption and multi-factor authentication to keep your money and data completely secure.",
+      color: "blue",
     },
     {
       icon: Smartphone,
       title: "Agent Network",
-      description: "Thousands of agents across Bangladesh for easy cash-in and cash-out anytime, anywhere.",
-      color: "green"
+      description:
+        "Thousands of agents across Bangladesh for easy cash-in and cash-out anytime, anywhere.",
+      color: "green",
     },
     {
       icon: CreditCard,
       title: "Bill Payments",
-      description: "Pay utility bills, mobile recharge, and more without leaving the comfort of your home.",
-      color: "purple"
-    }
+      description:
+        "Pay utility bills, mobile recharge, and more without leaving the comfort of your home.",
+      color: "purple",
+    },
   ];
 
   // Testimonials data
@@ -75,49 +76,53 @@ const Home = () => {
       location: "Rajshahi",
       avatar: "NI",
       text: "BanglaPay has made sending money to my family in rural areas so much easier. The agent network is extensive!",
-      rating: 5
+      rating: 5,
     },
     {
       name: "Wahida Shimu",
       location: "Chittagong",
       avatar: "WS",
       text: "As a small business owner, BanglaPay helps me accept payments quickly and securely. Highly recommended!",
-      rating: 5
+      rating: 5,
     },
     {
       name: "Fabiha Shila",
       location: "Sylhet",
       avatar: "FS",
       text: "The app is incredibly user-friendly. I've never had any issues with transactions. Customer support is excellent too!",
-      rating: 5
+      rating: 5,
     },
     {
       name: "Rakib Hasan",
       location: "Dhaka",
       avatar: "RH",
       text: "I've been using BanglaPay for over 2 years now. The instant transfers and low fees make it my preferred digital wallet.",
-      rating: 5
-    }
+      rating: 5,
+    },
   ];
 
   // FAQ data
   const faqData = [
     {
       question: "Is BanglaPay safe to use?",
-      answer: "Yes, we use bank-level security and encryption to protect your financial information. Our platform is regulated and compliant with all Bangladeshi financial laws."
+      answer:
+        "Yes, we use bank-level security and encryption to protect your financial information. Our platform is regulated and compliant with all Bangladeshi financial laws.",
     },
     {
       question: "How do I create an account?",
-      answer: "Simply download our app, provide your phone number, verify with OTP, and complete your KYC verification to get started."
+      answer:
+        "Simply download our app, provide your phone number, verify with OTP, and complete your KYC verification to get started.",
     },
     {
       question: "Are there any hidden fees?",
-      answer: "No, we are completely transparent about all fees. You'll see all charges before confirming any transaction."
+      answer:
+        "No, we are completely transparent about all fees. You'll see all charges before confirming any transaction.",
     },
     {
       question: "How quickly do transfers happen?",
-      answer: "Most transfers are instant and happen within seconds of confirmation. In rare cases, it may take up to a few minutes."
-    }
+      answer:
+        "Most transfers are instant and happen within seconds of confirmation. In rare cases, it may take up to a few minutes.",
+    },
   ];
 
   // Steps for How It Works
@@ -125,25 +130,40 @@ const Home = () => {
     {
       number: 1,
       title: "Create Account",
-      description: "Download our app and register with your phone number in minutes."
+      description:
+        "Download our app and register with your phone number in minutes.",
     },
     {
       number: 2,
       title: "Add Money",
-      description: "Visit any nearby agent to add money to your digital wallet."
+      description:
+        "Visit any nearby agent to add money to your digital wallet.",
     },
     {
       number: 3,
       title: "Start Transacting",
-      description: "Send money, pay bills, or shop online with just a few taps."
-    }
+      description:
+        "Send money, pay bills, or shop online with just a few taps.",
+    },
   ];
 
   // Security features
   const securityFeatures = [
-    { icon: Shield, title: "Bank-Level Encryption", description: "All your data is protected with AES-256 encryption" },
-    { icon: Eye, title: "2-Factor Authentication", description: "Additional security layer for all transactions" },
-    { icon: CheckCircle, title: "Regulated Platform", description: "Compliant with Bangladesh Bank regulations" },
+    {
+      icon: Shield,
+      title: "Bank-Level Encryption",
+      description: "All your data is protected with AES-256 encryption",
+    },
+    {
+      icon: Eye,
+      title: "2-Factor Authentication",
+      description: "Additional security layer for all transactions",
+    },
+    {
+      icon: CheckCircle,
+      title: "Regulated Platform",
+      description: "Compliant with Bangladesh Bank regulations",
+    },
   ];
 
   return (
@@ -152,42 +172,42 @@ const Home = () => {
       <section className="relative py-20 md:py-32 overflow-hidden bg-gradient-to-b from-background to-muted">
         {/* Animated background elements */}
         <div className="absolute inset-0 z-0">
-          <motion.div 
+          <motion.div
             className="absolute top-20 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl"
-            animate={{ 
+            animate={{
               scale: [1, 1.2, 1],
-              opacity: [0.6, 0.8, 0.6]
+              opacity: [0.6, 0.8, 0.6],
             }}
-            transition={{ 
-              duration: 4, 
+            transition={{
+              duration: 4,
               repeat: Infinity,
-              ease: "easeInOut"
+              ease: "easeInOut",
             }}
           />
-          <motion.div 
+          <motion.div
             className="absolute bottom-10 right-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"
-            animate={{ 
+            animate={{
               scale: [1, 1.1, 1],
-              opacity: [0.5, 0.7, 0.5]
+              opacity: [0.5, 0.7, 0.5],
             }}
-            transition={{ 
-              duration: 5, 
+            transition={{
+              duration: 5,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: 1
+              delay: 1,
             }}
           />
-          <motion.div 
+          <motion.div
             className="absolute top-1/2 left-1/4 w-48 h-48 bg-green-500/10 rounded-full blur-3xl"
-            animate={{ 
+            animate={{
               scale: [1, 1.15, 1],
-              opacity: [0.4, 0.6, 0.4]
+              opacity: [0.4, 0.6, 0.4],
             }}
-            transition={{ 
-              duration: 6, 
+            transition={{
+              duration: 6,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: 0.5
+              delay: 0.5,
             }}
           />
         </div>
@@ -208,7 +228,7 @@ const Home = () => {
             </motion.div>
 
             {/* Main headline with animation */}
-            <motion.h1 
+            <motion.h1
               className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -218,7 +238,7 @@ const Home = () => {
             </motion.h1>
 
             {/* Subtitle with animation */}
-            <motion.p 
+            <motion.p
               className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -255,9 +275,9 @@ const Home = () => {
                 </Link>
               </Button>
             </motion.div>
-            
+
             {/* Animated Credit Cards Section */}
-            <motion.div 
+            <motion.div
               className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -274,11 +294,13 @@ const Home = () => {
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <div className="text-sm opacity-80">Card Number</div>
-                      <div className="text-lg font-mono tracking-wider">****  ****  ****  1234</div>
+                      <div className="text-lg font-mono tracking-wider">
+                        **** **** **** 1234
+                      </div>
                     </div>
                     <div className="text-2xl font-bold">BANK</div>
                   </div>
-                  
+
                   <div className="flex justify-between items-end">
                     <div>
                       <div className="text-sm opacity-80">Card Holder</div>
@@ -291,7 +313,7 @@ const Home = () => {
                   </div>
                 </div>
               </motion.div>
-              
+
               <motion.div
                 className="relative"
                 initial={{ rotateY: -90 }}
@@ -303,11 +325,13 @@ const Home = () => {
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <div className="text-sm opacity-80">Card Number</div>
-                      <div className="text-lg font-mono tracking-wider">****  ****  ****  5678</div>
+                      <div className="text-lg font-mono tracking-wider">
+                        **** **** **** 5678
+                      </div>
                     </div>
                     <div className="text-2xl font-bold">BANK</div>
                   </div>
-                  
+
                   <div className="flex justify-between items-end">
                     <div>
                       <div className="text-sm opacity-80">Card Holder</div>
@@ -320,7 +344,7 @@ const Home = () => {
                   </div>
                 </div>
               </motion.div>
-              
+
               <motion.div
                 className="relative"
                 initial={{ rotateY: 90 }}
@@ -332,11 +356,13 @@ const Home = () => {
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <div className="text-sm opacity-80">Card Number</div>
-                      <div className="text-lg font-mono tracking-wider">****  ****  ****  9012</div>
+                      <div className="text-lg font-mono tracking-wider">
+                        **** **** **** 9012
+                      </div>
                     </div>
                     <div className="text-2xl font-bold">BANK</div>
                   </div>
-                  
+
                   <div className="flex justify-between items-end">
                     <div>
                       <div className="text-sm opacity-80">Card Holder</div>
@@ -355,7 +381,7 @@ const Home = () => {
       </section>
 
       {/* Stats Section with Animated Counters */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-muted/30"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -377,7 +403,7 @@ const Home = () => {
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <stat.icon className={`h-8 w-8 text-${stat.color}`} />
                 </div>
-                <motion.div 
+                <motion.div
                   className={`text-3xl md:text-4xl font-bold text-${stat.color} mb-2`}
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}
@@ -394,7 +420,7 @@ const Home = () => {
       </motion.section>
 
       {/* Features Showcase with Carousel */}
-      <motion.section 
+      <motion.section
         className="py-20"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -441,8 +467,12 @@ const Home = () => {
               <SwiperSlide key={index}>
                 <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-3xl overflow-hidden bg-gradient-to-br from-background to-muted h-full">
                   <CardHeader className="pb-4">
-                    <div className={`w-16 h-16 rounded-2xl bg-${feature.color}/10 flex items-center justify-center mb-6`}>
-                      <feature.icon className={`h-8 w-8 text-${feature.color}`} />
+                    <div
+                      className={`w-16 h-16 rounded-2xl bg-${feature.color}/10 flex items-center justify-center mb-6`}
+                    >
+                      <feature.icon
+                        className={`h-8 w-8 text-${feature.color}`}
+                      />
                     </div>
                     <CardTitle className="text-2xl">{feature.title}</CardTitle>
                   </CardHeader>
@@ -474,7 +504,7 @@ const Home = () => {
       </motion.section>
 
       {/* How It Works Section with Animations */}
-      <motion.section 
+      <motion.section
         className="py-20 bg-muted/30"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -502,13 +532,19 @@ const Home = () => {
                 transition={{ duration: 0.6, delay: index * 0.2 }}
                 whileHover={{ y: -10 }}
               >
-                <div className={`w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6 text-${index === 0 ? 'primary' : index === 1 ? 'blue-500' : 'green-500'}`}>
+                <div
+                  className={`w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6 text-${
+                    index === 0
+                      ? "primary"
+                      : index === 1
+                      ? "blue-500"
+                      : "green-500"
+                  }`}
+                >
                   <span className="text-3xl font-bold">{step.number}</span>
                 </div>
                 <h3 className="text-2xl font-semibold mb-4">{step.title}</h3>
-                <p className="text-muted-foreground">
-                  {step.description}
-                </p>
+                <p className="text-muted-foreground">{step.description}</p>
               </motion.div>
             ))}
           </div>
@@ -516,7 +552,7 @@ const Home = () => {
       </motion.section>
 
       {/* Security & Trust Section */}
-      <motion.section 
+      <motion.section
         className="py-20"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -529,7 +565,8 @@ const Home = () => {
               Security & Trust
             </h2>
             <p className="text-lg text-muted-foreground">
-              Your financial data is protected with the highest security standards
+              Your financial data is protected with the highest security
+              standards
             </p>
           </div>
 
@@ -548,9 +585,7 @@ const Home = () => {
                   <feature.icon className="h-8 w-8 text-primary" />
                 </div>
                 <h3 className="text-2xl font-semibold mb-4">{feature.title}</h3>
-                <p className="text-muted-foreground">
-                  {feature.description}
-                </p>
+                <p className="text-muted-foreground">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -558,7 +593,7 @@ const Home = () => {
       </motion.section>
 
       {/* Testimonials Section with Carousel */}
-      <motion.section 
+      <motion.section
         className="py-20 bg-muted/30"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -605,11 +640,15 @@ const Home = () => {
                   <CardContent className="pt-8">
                     <div className="flex items-center mb-6">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mr-4">
-                        <span className="font-bold text-primary">{testimonial.avatar}</span>
+                        <span className="font-bold text-primary">
+                          {testimonial.avatar}
+                        </span>
                       </div>
                       <div>
                         <h4 className="font-semibold">{testimonial.name}</h4>
-                        <p className="text-sm text-muted-foreground">{testimonial.location}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {testimonial.location}
+                        </p>
                       </div>
                     </div>
                     <p className="text-muted-foreground italic mb-4">
@@ -628,10 +667,8 @@ const Home = () => {
         </div>
       </motion.section>
 
-
-
       {/* FAQ Section with Accordion */}
-      <motion.section 
+      <motion.section
         className="py-20 bg-muted/30"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
