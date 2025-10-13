@@ -77,7 +77,7 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="container mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
+      <div className="container mt-8 pt-8 border-t text-center mx-auto text-sm text-muted-foreground">
         <p>© {new Date().getFullYear()} BanglaPay. All rights reserved.</p>
       </div>
     </footer>
